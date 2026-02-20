@@ -2,12 +2,6 @@
 
 A Shopify app that allows merchants to add countdown timers for special promotions and discounts on their product pages, with built-in analytics tracking.
 
-**PRD Coverage: 98%** ✅ | **Status: Ready for Submission**
-
-> 📋 See [PRD_COVERAGE_CHECKLIST.md](PRD_COVERAGE_CHECKLIST.md) for complete coverage status  
-> 📋 See [PRD_SUMMARY.md](PRD_SUMMARY.md) for detailed coverage status  
-> 🎥 See [VIDEO_PRESENTATION.md](VIDEO_PRESENTATION.md) for video presentation guide
-
 ## Features
 
 - **Fixed Timers**: Set specific start and end dates for promotions
@@ -30,16 +24,83 @@ A Shopify app that allows merchants to add countdown timers for special promotio
 2. MongoDB (local or cloud instance)
 3. Shopify Partners account
 4. Development store
+5. ngrok account (for local development with Shopify admin)
 
 ## Setup Instructions
 
-### 1. Install Dependencies
+### 1. Set Up ngrok Tunnel
+
+ngrok is required to expose your local development server to Shopify. Follow these steps:
+
+#### Install ngrok
+
+1. **Sign up for a free ngrok account** at https://dashboard.ngrok.com/signup
+2. **Download ngrok** from https://ngrok.com/download
+3. **Extract and add to PATH** (or place in a directory accessible from terminal)
+
+#### Authenticate ngrok
+
+After installation, authenticate with your ngrok account:
+
+```bash
+ngrok config add-authtoken YOUR_NGROK_AUTH_TOKEN
+```
+
+You can find your authtoken in the ngrok dashboard: https://dashboard.ngrok.com/get-started/your-authtoken
+
+#### Start ngrok Tunnel
+
+Open a new terminal window and start ngrok to forward traffic to your backend server:
+
+```bash
+ngrok http 3000
+```
+
+**Note:** Make sure your backend server is running on port 3000 (or adjust the port accordingly).
+
+#### Get Your ngrok URL
+
+After starting ngrok, you'll see output like:
+
+```
+Forwarding  https://abc123.ngrok-free.app -> http://localhost:3000
+```
+
+Copy the HTTPS URL (e.g., `https://abc123.ngrok-free.app`) - this is your ngrok URL.
+
+#### Update Configuration
+
+1. **Update `.env` file** with your ngrok URL:
+   ```env
+   SHOPIFY_APP_URL=https://abc123.ngrok-free.app
+   ```
+
+2. **Update `shopify.app.toml`**:
+   ```toml
+   application_url = "https://abc123.ngrok-free.app"
+   ```
+
+3. **Update frontend `.env`** (if needed):
+   ```env
+   VITE_API_URL=https://abc123.ngrok-free.app
+   VITE_SHOPIFY_APP_URL=https://abc123.ngrok-free.app
+   ```
+
+**Important Notes:**
+- Keep the ngrok terminal window open while developing
+- The ngrok URL changes each time you restart ngrok (unless you have a paid plan with static domains)
+- Update your `.env` and `shopify.app.toml` whenever the ngrok URL changes
+- For production, use a static domain or hosting service instead of ngrok
+
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Configure Environment Variables
+### 3. Configure Environment Variables
+
+#### Backend Environment Variables
 
 Create a `.env` file in the root directory:
 
@@ -52,14 +113,32 @@ MONGODB_URI=mongodb://localhost:27017/countdown-timer
 PORT=3000
 ```
 
-### 3. Update shopify.app.toml
+#### Frontend Environment Variables (Optional)
+
+Create a `.env` file in `app/frontend/` directory for frontend-specific configuration:
+
+```env
+# API Base URL (optional - defaults to proxy in development)
+# For Shopify admin (ngrok), set this to your backend ngrok URL
+VITE_API_URL=http://localhost:3001
+
+# Shopify App URL (optional - for ResourcePicker)
+VITE_SHOPIFY_APP_URL=https://your-app-url.ngrok.io
+```
+
+**Note:** 
+- In Vite, environment variables must be prefixed with `VITE_` to be accessible in the browser
+- For local development, the proxy handles API requests automatically
+- Only set `VITE_API_URL` if you need to override the default proxy behavior (e.g., when testing in Shopify admin)
+
+### 4. Update shopify.app.toml
 
 Update the `shopify.app.toml` file with your app credentials:
 - `client_id`: Your Shopify API key
 - `application_url`: Your app URL
 - `dev_store_url`: Your development store URL
 
-### 4. Run the App
+### 5. Run the App
 
 ```bash
 npm run dev
