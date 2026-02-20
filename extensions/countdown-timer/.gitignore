@@ -1,0 +1,13 @@
+# Ignore build and source files
+dist/
+src/
+scripts/
+node_modules/
+*.map
+*.log
+
+
+
+
+
+

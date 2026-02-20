@@ -1,0 +1,36 @@
+{% comment %}
+  Countdown Timer Block
+  This block displays a countdown timer on product pages
+{% endcomment %}
+
+<div
+  id="countdown-timer-block"
+  data-product-id="{{ product.id }}"
+  data-shop="{{ shop.permanent_domain | default: shop.domain }}"
+  data-api-url="{{ block.settings.api_url }}"
+>
+  <script src="{{ 'countdown-timer.js' | asset_url }}" defer></script>
+</div>
+
+<style>
+  #countdown-timer-block {
+    margin: 1rem 0;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Countdown Timer",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "api_url",
+      "label": "API URL",
+      "default": "http://localhost:3001/api/public/timer",
+      "info": "Backend API URL for fetching timer data"
+    }
+  ]
+}
+{% endschema %}
+

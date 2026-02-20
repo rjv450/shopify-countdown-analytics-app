@@ -1,0 +1,9 @@
+# Learn more about configuring your Theme App Extension at https://shopify.dev/docs/apps/online-store/theme-app-extensions/getting-started
+
+api_version = "2024-01"
+
+[[extensions]]
+uid = "2d6e9a3f-aa62-633c-0ce3-390dc16527cea09b75b2"
+type = "theme"
+name = "countdown-timer"
+handle = "countdown-timer"

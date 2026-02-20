@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Shopify API Key - must be before App Bridge script -->
+    <meta name="shopify-api-key" content="93a0d4054a522d3402e0018392761b85" />
+    <title>Countdown Timer App</title>
+    <!-- App Bridge must be the first script tag, no async/defer/module -->
+    <!-- App Bridge will only initialize if shop and host URL parameters are present -->
+    <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
+    <script>
+      // Suppress App Bridge errors if initialization fails (when not in embedded context)
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('App Bridge')) {
+          e.preventDefault();
+          return false;
+        }
+      }, true);
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+
+
+

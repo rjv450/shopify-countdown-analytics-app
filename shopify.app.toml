@@ -1,0 +1,31 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+name = "countdown-timer-app"
+client_id = "93a0d4054a522d3402e0018392761b85"
+# This must be a valid URL. During `shopify app dev`, Shopify CLI will automatically
+# update it to your tunnel URL when `automatically_update_urls_on_dev = true`.
+# Using localhost here - CLI will replace with its own tunnel URL automatically.
+application_url = "https://nonpropitiative-julene-untrellised.ngrok-free.dev"
+embedded = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products,read_products,write_themes,read_themes"
+
+[auth]
+redirect_urls = [
+  "https://nonpropitiative-julene-untrellised.ngrok-free.dev/auth/callback",
+  "https://nonpropitiative-julene-untrellised.ngrok-free.dev/auth/shopify/callback",
+  "https://nonpropitiative-julene-untrellised.ngrok-free.dev/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-01"
+
+[pos]
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "development-store-15820042444.myshopify.com"
+

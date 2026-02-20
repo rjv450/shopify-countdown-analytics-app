@@ -1,0 +1,15 @@
+# Ignore build files and source files
+# Shopify CLI should ignore these directories
+
+dist/
+src/
+scripts/
+node_modules/
+package.json
+package-lock.json
+vite.config.js
+README.md
+*.map
+*.log
+.env
+.env.example
