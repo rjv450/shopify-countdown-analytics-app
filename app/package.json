@@ -17,6 +17,7 @@
     "express-rate-limit": "^7.1.5",
     "joi": "^17.11.0",
     "mongoose": "^8.0.0",
+    "node-schedule": "^2.1.1",
     "sanitize-html": "^2.11.0"
   },
   "devDependencies": {

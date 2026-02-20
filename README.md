@@ -200,6 +200,101 @@ Evergreen timers use localStorage to track per-visitor session state:
 - Expiry calculated client-side
 - Automatic reset on expiry or session end
 
+### Background Scheduler for Status Updates
+
+A background scheduler service (`app/services/timerScheduler.js`) automatically updates timer statuses using `node-schedule`:
+
+- **Runs every 5 minutes** (configurable via `SCHEDULER_INTERVAL_MINUTES` env var) to check all Fixed timers
+- **Uses cron-like scheduling** via `node-schedule` for reliable execution
+- **Updates status** based on current time vs startDate/endDate
+- **Respects draft status** - won't auto-update timers set to `draft`
+- **Runs automatically** when the server starts
+- **Logs updates** for monitoring and debugging
+- **Graceful shutdown** - stops cleanly on SIGTERM/SIGINT
+
+**Configuration:**
+```env
+# Optional: Set scheduler interval in minutes (default: 5 minutes)
+# Cron pattern will be: */N * * * * (runs every N minutes)
+SCHEDULER_INTERVAL_MINUTES=5
+```
+
+**Benefits:**
+- Timers automatically become active when their start date arrives
+- Timers automatically expire when their end date passes
+- No manual intervention needed for scheduled timers
+- Works even if timers aren't being edited/saved
+- Resilient error handling - continues running even if individual timer updates fail
+
+**Monitoring:**
+- Check scheduler status via `/health` endpoint
+- Scheduler logs all updates to console
+- Errors are logged but don't stop the scheduler
+
+### Timer Status Management
+
+Timer status can be updated in three ways:
+
+#### 1. Automatic Status Updates (Background Scheduler)
+
+A **background scheduler** runs every 5 minutes to automatically update Fixed timer statuses:
+
+- **`scheduled`**: When current time is before `startDate`
+- **`active`**: When current time is between `startDate` and `endDate`
+- **`expired`**: When current time is after `endDate`
+
+**Important:** 
+- The scheduler only updates timers that are **not** `draft`
+- If a timer is set to `draft`, it will remain `draft` regardless of dates
+- The scheduler runs automatically when the server starts
+- Status updates happen in the background without manual intervention
+
+#### 2. Automatic Status Updates (Pre-save Hook)
+
+For **Fixed Timers**, status is also automatically updated when the timer is saved (via Mongoose pre-save hook):
+
+- Same logic as the scheduler, but triggers immediately on save
+- Useful for immediate status updates when creating/editing timers
+
+#### 3. Manual Status Updates
+
+Merchants can manually control timer status:
+
+- **Via Create/Edit Form**: Set status to `draft`, `active`, or `scheduled` when creating or editing
+- **Via Activate Button**: Click "Activate" button on draft timers in the Dashboard to set status to `active`
+- **Manual override**: Once manually set to `draft`, status will not auto-update until changed again
+
+#### When Will a Timer Become Active?
+
+**Fixed Timers:**
+- **Automatically via Scheduler**: When `startDate` arrives, the background scheduler (runs every 5 minutes) will update status from `scheduled` to `active`
+- **Automatically on Save**: When timer is saved and current time is between `startDate` and `endDate`
+- **Manually**: When merchant clicks "Activate" button or sets status to `active` in the form
+- **Note**: If status is `draft`, it will NOT auto-activate even when `startDate` arrives
+
+**Evergreen Timers:**
+- **Manually only**: Evergreen timers must be manually activated via the form or "Activate" button
+- **No automatic activation**: Evergreen timers don't have dates, so they don't auto-activate
+
+#### Status Flow Example
+
+```
+1. Create timer with startDate = tomorrow, status = 'draft'
+   → Status: 'draft' (remains draft, won't auto-activate)
+
+2. Click "Activate" button
+   → Status: 'active' (if current time is between startDate and endDate)
+   → Status: 'scheduled' (if current time is before startDate)
+
+3. When startDate arrives (if status was 'scheduled')
+   → Status: 'active' (auto-updated by background scheduler within 5 minutes)
+   → OR: Status: 'active' (auto-updated immediately on next save/edit)
+
+4. When endDate passes
+   → Status: 'expired' (auto-updated by background scheduler within 5 minutes)
+   → OR: Status: 'expired' (auto-updated immediately on next save/edit)
+```
+
 ## API Endpoints
 
 ### Admin API (Authenticated)

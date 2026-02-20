@@ -12,6 +12,7 @@ import publicRoutes from './routes/public.js';
 import analyticsRoutes from './routes/analytics.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
+import timerScheduler from './services/timerScheduler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -48,7 +49,11 @@ app.use('/api/', rateLimiter);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    scheduler: timerScheduler.getStatus()
+  });
 });
 
 // API Routes
@@ -73,7 +78,6 @@ app.get('*', (req, res, next) => {
 app.use(errorHandler);
 
 // Connect to MongoDB
-// Connect to MongoDB
 if (config.server.nodeEnv !== 'test') {
   mongoose
     .connect(config.mongodb.uri)
@@ -85,6 +89,9 @@ if (config.server.nodeEnv !== 'test') {
         if (config.server.nodeEnv === 'development') {
           console.log(`🔗 API URL: http://localhost:${PORT}`);
         }
+
+        // Start timer status scheduler
+        timerScheduler.start();
       });
 
       // Handle server errors
@@ -98,6 +105,31 @@ if (config.server.nodeEnv !== 'test') {
           console.error('❌ Server error:', error);
           process.exit(1);
         }
+      });
+
+      // Graceful shutdown
+      process.on('SIGTERM', () => {
+        console.log('SIGTERM received, shutting down gracefully...');
+        timerScheduler.stop();
+        server.close(() => {
+          console.log('Server closed');
+          mongoose.connection.close(false, () => {
+            console.log('MongoDB connection closed');
+            process.exit(0);
+          });
+        });
+      });
+
+      process.on('SIGINT', () => {
+        console.log('\nSIGINT received, shutting down gracefully...');
+        timerScheduler.stop();
+        server.close(() => {
+          console.log('Server closed');
+          mongoose.connection.close(false, () => {
+            console.log('MongoDB connection closed');
+            process.exit(0);
+          });
+        });
       });
     })
     .catch((error) => {
